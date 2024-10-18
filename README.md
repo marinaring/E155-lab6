@@ -1,0 +1,1 @@
+In this lab, I will design and build a simple Internet of Things device! The goal is to have a webpage from which you can toggle and LED and read temperature from a chip.  
