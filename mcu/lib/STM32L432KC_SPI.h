@@ -2,7 +2,7 @@
 // TODO: <YOUR NAME>
 // TODO: <YOUR EMAIL>
 // TODO: <DATE>
-// TODO: <SHORT DESCRIPTION OF WHAT THIS FILE DOES>
+// Function prototypes and definitions for SPI peripheral for STM32 Microcontroller
 
 #ifndef STM32L4_SPI_H
 #define STM32L4_SPI_H
