@@ -1,7 +1,7 @@
 // STM32L432KC_SPI.h
-// TODO: <YOUR NAME>
-// TODO: <YOUR EMAIL>
-// TODO: <DATE>
+// Marina Ring
+// mring@g.hmc.edu
+// 10/18/2024
 // Function prototypes and definitions for SPI peripheral for STM32 Microcontroller
 
 #ifndef STM32L4_SPI_H
