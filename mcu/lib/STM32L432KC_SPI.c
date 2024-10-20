@@ -26,9 +26,24 @@ void initSPI(int br, int cpol, int cpha) {
 
   // receive data with MSB first 
   SPI->CR1 &= ~SPI_CR1_LSBFIRST;
+  
+  // bypass NSS, control SPI through software
+  SPI->CR1 |= SPI_CR1_SSI;
+  SPI->CR1 |= SPI_CR1_SSM;
 
+  // set MCU as controller
+  SPI->CR1 |= SPI_CR1_MSTR;
 
+  // set 8 bit package
+  SPI->CR2 |= (0b0111 << SPI_CR2_DS_Pos);
+  SPI->CR2 |= SPI_CR2_FRXTH;
 
+  // enable SSOE control bit
+  SPI->CR2 |= SPI_CR2_SSOE;
+
+  // enable SPI
+  // I think maybe I need to wait to do this until after I configure data to send to temperature sensor?
+  // SPI->CR1 |= SPI_CR1_SPE;
 };
     
 
@@ -36,25 +51,10 @@ void initSPI(int br, int cpol, int cpha) {
  *    -- send: the character to send over SPI
  *    -- return: the character received over SPI */
 char spiSendReceive(char send) {
-
+  
   
 
 };
 
 
  
-/*
-// from the RCC_APB2RSTR register
-
-#define RCC_APB2RSTR_SPI1RST_Pos             (12U)
-#define RCC_APB2RSTR_SPI1RST_Msk             (0x1UL << RCC_APB2RSTR_SPI1RST_Pos) 
-#define RCC_APB2RSTR_SPI1RST 
-
-
-// from the RCC_ABP2ENR register
-
-#define RCC_APB2ENR_SPI1EN_Pos               (12U)
-#define RCC_APB2ENR_SPI1EN_Msk               (0x1UL << RCC_APB2ENR_SPI1EN_Pos) 
-#define RCC_APB2ENR_SPI1EN  
-
-*/

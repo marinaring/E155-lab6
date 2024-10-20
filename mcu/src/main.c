@@ -50,6 +50,23 @@ int updateLEDStatus(char request[])
 // Solution Functions
 /////////////////////////////////////////////////////////////////
 
+/*
+// from the RCC_APB2RSTR register
+
+#define RCC_APB2RSTR_SPI1RST_Pos             (12U)
+#define RCC_APB2RSTR_SPI1RST_Msk             (0x1UL << RCC_APB2RSTR_SPI1RST_Pos) 
+#define RCC_APB2RSTR_SPI1RST 
+
+
+// from the RCC_ABP2ENR register
+
+#define RCC_APB2ENR_SPI1EN_Pos               (12U)
+#define RCC_APB2ENR_SPI1EN_Msk               (0x1UL << RCC_APB2ENR_SPI1EN_Pos) 
+#define RCC_APB2ENR_SPI1EN  
+
+*/
+
+
 int main(void) {
   configureFlash();
   configureClock();
