@@ -79,6 +79,8 @@ int main(void) {
   // CPHA MUST BE SET TO 1
   initSPI(0b110, 1, 1);
 
+  // initialize temperature sensor
+  configureTemp(BIT8);
 
   while(1) {
     /* Wait for ESP8266 to send a request.

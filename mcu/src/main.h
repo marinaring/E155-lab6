@@ -9,6 +9,7 @@
 #define MAIN_H
 
 #include "../lib/STM32L432KC.h"
+#include "../lib/DS1722.h"
 
 #define LED_PIN PB5 // LED pin for blinking on Port B pin 5
 #define BUFF_LEN 32
