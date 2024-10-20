@@ -20,7 +20,14 @@ void initSPI(int br, int cpol, int cpha) {
   SPI->CR1 |= (cpol << SPI_CR1_CPOL_Pos);
   SPI->CR1 |= (cpha << SPI_CR1_CPOL_Pos);
 
-  // say to choose simplex or half-duplex mode. ?
+  // enable half-duplex mode
+  SPI->CR1 |= SPI_CR1_BIDIMODE;
+  SPI->CR1 |= SPI_CR1_BIDIOE; 
+
+  // receive data with MSB first 
+  SPI->CR1 &= ~SPI_CR1_LSBFIRST;
+
+
 
 };
     
