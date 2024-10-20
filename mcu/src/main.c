@@ -1,8 +1,8 @@
 /*
-File: Lab_6_JHB.c
-Author: Josh Brake
-Email: jbrake@hmc.edu
-Date: 9/14/19
+File: main.c
+Author: Marina Ring, with code provided by Prof. Josh Brake
+Email: mring@g.hmc.edu
+Date: 10/20/2024
 */
 
 
@@ -50,22 +50,6 @@ int updateLEDStatus(char request[])
 // Solution Functions
 /////////////////////////////////////////////////////////////////
 
-/*
-// from the RCC_APB2RSTR register
-
-#define RCC_APB2RSTR_SPI1RST_Pos             (12U)
-#define RCC_APB2RSTR_SPI1RST_Msk             (0x1UL << RCC_APB2RSTR_SPI1RST_Pos) 
-#define RCC_APB2RSTR_SPI1RST 
-
-
-// from the RCC_ABP2ENR register
-
-#define RCC_APB2ENR_SPI1EN_Pos               (12U)
-#define RCC_APB2ENR_SPI1EN_Msk               (0x1UL << RCC_APB2ENR_SPI1EN_Pos) 
-#define RCC_APB2ENR_SPI1EN  
-
-*/
-
 
 int main(void) {
   configureFlash();
@@ -75,16 +59,25 @@ int main(void) {
   gpioEnable(GPIO_PORT_B);
   gpioEnable(GPIO_PORT_C);
 
-  pinMode(PB3, GPIO_OUTPUT);
-  
+  pinMode(LED_PIN, GPIO_OUTPUT);
+  pinMode(COPI, GPIO_ALT);
+  pinMode(CIPO, GPIO_ALT);
+  pinMode(SCK, GPIO_ALT);
+
+  GPIOA->AFR[0] |= _VAL2FLD(GPIO_AFRL_AFSEL6, 0b0101); // select CIPO as AF
+  GPIOA->AFR[1] |= _VAL2FLD(GPIO_AFRL_AFSEL4, 0b0101); // select COPI as AF
+  GPIOB->AFR[0] |= _VAL2FLD(GPIO_AFRL_AFSEL3, 0b0101); // select SCK as AF
+
   RCC->APB2ENR |= (RCC_APB2ENR_TIM15EN);
+  RCC->APB2ENR |= (RCC_APB2ENR_SPI1EN);
+
   initTIM(TIM15);
   
   USART_TypeDef * USART = initUSART(USART1_ID, 125000);
 
-  // TODO: Add SPI initialization code
+  // initialize SPI
   // CPHA MUST BE SET TO 1
-  // groups of 8 bits
+  initSPI(0b110, 1, 1);
 
 
   while(1) {
@@ -104,10 +97,13 @@ int main(void) {
       request[charIndex++] = readChar(USART);
     }
 
-    // TODO: Add SPI code here for reading temperature
-  
+    // read temperature
+    float temp_status = readTemp();
+
+    char tempStatusStr[50];
+    sprintf(tempStatusStr, "The temperature is %f deg C", temp_status);
+
     // Update string with current LED state
-  
     int led_status = updateLEDStatus(request);
 
     char ledStatusStr[20];
@@ -125,6 +121,12 @@ int main(void) {
 
     sendString(USART, "<p>");
     sendString(USART, ledStatusStr);
+    sendString(USART, "</p>");
+
+
+    sendString(USART, "<h2>Temperature Status</h2>");
+    sendString(USART, "<p>");
+    sendString(USART, tempStatusStr);
     sendString(USART, "</p>");
 
   

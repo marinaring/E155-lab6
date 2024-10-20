@@ -10,8 +10,11 @@
 
 #include "../lib/STM32L432KC.h"
 
-#define LED_PIN PB3 // LED pin for blinking on Port B pin 3
+#define LED_PIN PB5 // LED pin for blinking on Port B pin 5
 #define BUFF_LEN 32
 #define SPI SPI1
+#define COPI PA12
+#define CIPO PA6
+#define SCK PB3
 
 #endif // MAIN_H

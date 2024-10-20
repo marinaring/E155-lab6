@@ -13,16 +13,11 @@
  *          1: data changed on leading edge of clk and captured on next edge)
  * Refer to the datasheet for more low-level details. */ 
 void initSPI(int br, int cpol, int cpha) {
-  SPI_TypeDef * SPI = SPI1;
 
   // configure SPI to the input parameters 
   SPI->CR1 |= (br << SPI_CR1_BR_Pos);
   SPI->CR1 |= (cpol << SPI_CR1_CPOL_Pos);
   SPI->CR1 |= (cpha << SPI_CR1_CPOL_Pos);
-
-  // enable half-duplex mode
-  SPI->CR1 |= SPI_CR1_BIDIMODE;
-  SPI->CR1 |= SPI_CR1_BIDIOE; 
 
   // receive data with MSB first 
   SPI->CR1 &= ~SPI_CR1_LSBFIRST;
@@ -35,15 +30,15 @@ void initSPI(int br, int cpol, int cpha) {
   SPI->CR1 |= SPI_CR1_MSTR;
 
   // set 8 bit package
-  SPI->CR2 |= (0b0111 << SPI_CR2_DS_Pos);
+  //SPI->CR2 |= (0b0111 << SPI_CR2_DS_Pos);
+  SPI->CR2 |= _VAL2FLD(SPI_CR2_DS, 0b0111);
   SPI->CR2 |= SPI_CR2_FRXTH;
 
   // enable SSOE control bit
   SPI->CR2 |= SPI_CR2_SSOE;
 
   // enable SPI
-  // I think maybe I need to wait to do this until after I configure data to send to temperature sensor?
-  // SPI->CR1 |= SPI_CR1_SPE;
+  SPI->CR1 |= SPI_CR1_SPE;
 };
     
 
@@ -52,8 +47,17 @@ void initSPI(int br, int cpol, int cpha) {
  *    -- return: the character received over SPI */
 char spiSendReceive(char send) {
   
-  
+  // wait until the transmit buffer is empty (we're making sure there is nothing still to send)
+  while(~_FLD2VAL(SPI_SR_TXE, 1));
 
+  // write to data register to be sent
+  SPI->DR = send;
+
+  // wait until the read buffer is not empty (we're waiting for all the data to be sent and then for data to be received)
+  while(~_FLD2VAL(SPI_SR_RXNE, 1));
+
+  // read data from the data register
+  return SPI->DR; 
 };
 
 
