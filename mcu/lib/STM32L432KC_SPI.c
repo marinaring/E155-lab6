@@ -24,7 +24,7 @@ void initSPI(int br, int cpol, int cpha) {
 
   // bypass NSS, control SPI through software
   SPI->CR1 |= SPI_CR1_SSI;
-  SPI->CR1 |= SPI_CR1_SSM;
+  SPI->CR1 &= ~SPI_CR1_SSM;
 
   // set MCU as controller
   SPI->CR1 |= SPI_CR1_MSTR;

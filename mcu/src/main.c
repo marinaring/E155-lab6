@@ -37,9 +37,9 @@ int inString(char request[], char des[]) {
 	return -1;
 }
 
-int updateLEDStatus(char request[])
+int updateLEDStatus(char request[], int old_led_status)
 {
-	int led_status = 0;
+	int led_status = old_led_status;
 	// The request has been received. now process to determine whether to turn the LED on or off
 	if (inString(request, "ledoff")==1) {
 		digitalWrite(LED_PIN, PIO_LOW);
@@ -85,13 +85,12 @@ int main(void) {
   pinMode(CS, GPIO_OUTPUT);
 
   //GPIOB->AFR[0] |= _VAL2FLD(GPIO_AFRL_AFSEL6, 0b0101); // select CIPO as AF5
-  GPIOA->AFR[0] |= _VAL2FLD(GPIO_AFRL_AFSEL5, 0b0101); // select COPI as AF6
-  GPIOB->AFR[0] |= _VAL2FLD(GPIO_AFRL_AFSEL4, 0b0101); // select SCK as AF6
-  GPIOB->AFR[0] |= _VAL2FLD(GPIO_AFRL_AFSEL5, 0b0101); // select CIPO as AF6
+  GPIOA->AFR[0] |= _VAL2FLD(GPIO_AFRL_AFSEL5, 0b0101); // select PA5 as AF5
+  GPIOA->AFR[0] |= _VAL2FLD(GPIO_AFRL_AFSEL6, 0b0101); // select PA6 as AF5
+  GPIOA->AFR[1] |= _VAL2FLD(GPIO_AFRL_AFSEL4, 0b0101); // select PA12 as AF5
 
   RCC->APB2ENR |= (RCC_APB2ENR_TIM15EN);
   RCC->APB2ENR |= (RCC_APB2ENR_SPI1EN);
-  RCC->APB2ENR |= (RCC_APB1ENR1_SPI3EN);
 
   initTIM(TIM15);
   
@@ -101,11 +100,13 @@ int main(void) {
   // CPHA MUST BE SET TO 1
   initSPI(0b111, 1, 1);
 
+  while(1) {
   // initialize temperature sensor
   digitalWrite(CS, 1);
   configureTemp(BIT8);
   digitalWrite(CS, 0);
 
+  }
   while(1) {
     /* Wait for ESP8266 to send a request.
     Requests take the form of '/REQ:<tag>\n', with TAG begin <= 10 characters.
@@ -130,7 +131,7 @@ int main(void) {
     //sprintf(tempStatusStr, "The temperature is %f deg C", temp_status);
 
     // Update string with current LED state
-    int led_status = updateLEDStatus(request);
+    int led_status = updateLEDStatus(request, led_status);
 
     // Update string with current temp config
     int temp_config_status = updateTempConfig(request);
