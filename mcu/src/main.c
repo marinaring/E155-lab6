@@ -20,8 +20,15 @@ char* webpageStart = "<!DOCTYPE html><html><head><title>E155 Web Server Demo Web
 	<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\
 	</head>\
 	<body><h1>E155 Web Server Demo Webpage</h1>";
-char* ledStr = "<p>LED Control:</p><form action=\"ledon\"><input type=\"submit\" value=\"Turn the LED on!\"></form>\
+char* ledStr = "<p>LED Control:</p>\
+        <form action=\"ledon\"><input type=\"submit\" value=\"Turn the LED on!\"></form>\
 	<form action=\"ledoff\"><input type=\"submit\" value=\"Turn the LED off!\"></form>";
+char* tempForm = "<p>Bit Resolution Control:</p>\
+        <form action=\"bit8\"><input type=\"submit\" value=\"8-Bit\"></form>\
+	<form action=\"bit9\"><input type=\"submit\" value=\"9-Bit\"></form>\
+        <form action=\"bit10\"><input type=\"submit\" value=\"10-Bit\"></form>\
+        <form action=\"bit11\"><input type=\"submit\" value=\"11-Bit\"></form>\
+        <form action=\"bit12\"><input type=\"submit\" value=\"12-Bit\"></form>";
 char* webpageEnd   = "</body></html>";
 
 //determines whether a given character sequence is in a char array request, returning 1 if present, -1 if not present
@@ -46,6 +53,18 @@ int updateLEDStatus(char request[])
 	return led_status;
 }
 
+int updateTempConfig(char request[]) {
+  int temp_config = BIT8;
+
+  temp_config = (inString(request, "bit9")) ? BIT9 : temp_config;
+  temp_config = (inString(request, "bit10")) ? BIT10 : temp_config;
+  temp_config = (inString(request, "bit11")) ? BIT11 : temp_config;
+  temp_config = (inString(request, "bit12")) ? BIT12 : temp_config;
+
+  return temp_config;
+}
+
+
 /////////////////////////////////////////////////////////////////
 // Solution Functions
 /////////////////////////////////////////////////////////////////
@@ -63,13 +82,16 @@ int main(void) {
   pinMode(COPI, GPIO_ALT);
   pinMode(CIPO, GPIO_ALT);
   pinMode(SCK, GPIO_ALT);
+  pinMode(CS, GPIO_OUTPUT);
 
-  GPIOA->AFR[0] |= _VAL2FLD(GPIO_AFRL_AFSEL6, 0b0101); // select CIPO as AF
-  GPIOA->AFR[1] |= _VAL2FLD(GPIO_AFRL_AFSEL4, 0b0101); // select COPI as AF
-  GPIOB->AFR[0] |= _VAL2FLD(GPIO_AFRL_AFSEL3, 0b0101); // select SCK as AF
+  //GPIOB->AFR[0] |= _VAL2FLD(GPIO_AFRL_AFSEL6, 0b0101); // select CIPO as AF5
+  GPIOA->AFR[0] |= _VAL2FLD(GPIO_AFRL_AFSEL5, 0b0101); // select COPI as AF6
+  GPIOB->AFR[0] |= _VAL2FLD(GPIO_AFRL_AFSEL4, 0b0101); // select SCK as AF6
+  GPIOB->AFR[0] |= _VAL2FLD(GPIO_AFRL_AFSEL5, 0b0101); // select CIPO as AF6
 
   RCC->APB2ENR |= (RCC_APB2ENR_TIM15EN);
   RCC->APB2ENR |= (RCC_APB2ENR_SPI1EN);
+  RCC->APB2ENR |= (RCC_APB1ENR1_SPI3EN);
 
   initTIM(TIM15);
   
@@ -77,10 +99,12 @@ int main(void) {
 
   // initialize SPI
   // CPHA MUST BE SET TO 1
-  initSPI(0b110, 1, 1);
+  initSPI(0b111, 1, 1);
 
   // initialize temperature sensor
+  digitalWrite(CS, 1);
   configureTemp(BIT8);
+  digitalWrite(CS, 0);
 
   while(1) {
     /* Wait for ESP8266 to send a request.
@@ -100,13 +124,16 @@ int main(void) {
     }
 
     // read temperature
-    float temp_status = readTemp();
+    //float temp_status = readTemp();
 
     char tempStatusStr[50];
-    sprintf(tempStatusStr, "The temperature is %f deg C", temp_status);
+    //sprintf(tempStatusStr, "The temperature is %f deg C", temp_status);
 
     // Update string with current LED state
     int led_status = updateLEDStatus(request);
+
+    // Update string with current temp config
+    int temp_config_status = updateTempConfig(request);
 
     char ledStatusStr[20];
     if (led_status == 1)
@@ -125,11 +152,11 @@ int main(void) {
     sendString(USART, ledStatusStr);
     sendString(USART, "</p>");
 
-
     sendString(USART, "<h2>Temperature Status</h2>");
-    sendString(USART, "<p>");
-    sendString(USART, tempStatusStr);
-    sendString(USART, "</p>");
+    sendString(USART, tempForm);
+    //sendString(USART, "<p>");
+    //sendString(USART, tempStatusStr);
+    //sendString(USART, "</p>");
 
   
     sendString(USART, webpageEnd);

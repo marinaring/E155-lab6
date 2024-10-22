@@ -11,6 +11,7 @@
 #include <math.h>
 #include <stm32l432xx.h>
 #include "STM32L432KC_SPI.h"
+#include "STM32L432KC_GPIO.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 // Definitions

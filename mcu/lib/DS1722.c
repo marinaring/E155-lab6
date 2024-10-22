@@ -22,8 +22,14 @@ void configureTemp(int resolution) {
 
 
 float readTemp(void) {
-  char temp_lsb = spiSendReceive(0x01);
-  char temp_msb = spiSendReceive(0x02);
+  digitalWrite(PB6, 1);
+  spiSendReceive(0x01);
+  char temp_lsb = spiSendReceive(0x00);
+  digitalWrite(PB6, 0);
+  digitalWrite(PB6, 1);
+  spiSendReceive(0x02);
+  char temp_msb = spiSendReceive(0x00);
+  digitalWrite(PB6, 0);
 
   return convertTempToFloat(temp_lsb, temp_msb);
 };

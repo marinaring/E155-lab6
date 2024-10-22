@@ -15,13 +15,13 @@
 void initSPI(int br, int cpol, int cpha) {
 
   // configure SPI to the input parameters 
-  SPI->CR1 |= (br << SPI_CR1_BR_Pos);
-  SPI->CR1 |= (cpol << SPI_CR1_CPOL_Pos);
-  SPI->CR1 |= (cpha << SPI_CR1_CPOL_Pos);
+  SPI->CR1 |= _VAL2FLD(SPI_CR1_BR, br);
+  SPI->CR1 |= _VAL2FLD(SPI_CR1_CPOL, cpol);
+  SPI->CR1 |= _VAL2FLD(SPI_CR1_CPHA, cpha);
 
   // receive data with MSB first 
   SPI->CR1 &= ~SPI_CR1_LSBFIRST;
-  
+
   // bypass NSS, control SPI through software
   SPI->CR1 |= SPI_CR1_SSI;
   SPI->CR1 |= SPI_CR1_SSM;
@@ -30,8 +30,7 @@ void initSPI(int br, int cpol, int cpha) {
   SPI->CR1 |= SPI_CR1_MSTR;
 
   // set 8 bit package
-  //SPI->CR2 |= (0b0111 << SPI_CR2_DS_Pos);
-  SPI->CR2 |= _VAL2FLD(SPI_CR2_DS, 0b0111);
+  SPI->CR2 |= (0b0111 << SPI_CR2_DS_Pos);
   SPI->CR2 |= SPI_CR2_FRXTH;
 
   // enable SSOE control bit
@@ -48,16 +47,17 @@ void initSPI(int br, int cpol, int cpha) {
 char spiSendReceive(char send) {
   
   // wait until the transmit buffer is empty (we're making sure there is nothing still to send)
-  while(~_FLD2VAL(SPI_SR_TXE, 1));
+  while(!(SPI_SR_TXE & SPI->SR));
 
   // write to data register to be sent
-  SPI->DR = send;
+  *(volatile char *) (&SPI->DR) = send;
 
   // wait until the read buffer is not empty (we're waiting for all the data to be sent and then for data to be received)
-  while(~_FLD2VAL(SPI_SR_RXNE, 1));
+  while(!(SPI_SR_RXNE & SPI->SR));  
 
+  char received = (volatile char) SPI->DR;
   // read data from the data register
-  return SPI->DR; 
+  return received; 
 };
 
 
