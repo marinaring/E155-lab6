@@ -11,12 +11,17 @@
 void configureTemp(int resolution) {
   
   // send signal that we are changing the configuration register
+  digitalWrite(PB6, 1);
   spiSendReceive(0x80);
+  digitalWrite(PB6, 0);
 
   // send new configuration
   int default_config = 0b11100000;
   int new_config = (resolution << 1) | default_config; // concatenate default configuration with resolution chosen
+
+  digitalWrite(PB6, 1);
   spiSendReceive(new_config);
+  digitalWrite(PB6, 0);
 
 };
 
@@ -24,12 +29,27 @@ void configureTemp(int resolution) {
 float readTemp(void) {
   digitalWrite(PB6, 1);
   spiSendReceive(0x01);
+  digitalWrite(PB6, 0);
+
+  delay_millis(TIM15, 1);
+
+  digitalWrite(PB6, 1);
   char temp_lsb = spiSendReceive(0x00);
   digitalWrite(PB6, 0);
+
+  delay_millis(TIM15, 1);
+
   digitalWrite(PB6, 1);
   spiSendReceive(0x02);
+  digitalWrite(PB6, 0);
+
+  delay_millis(TIM15, 1);
+
+  digitalWrite(PB6, 1);
   char temp_msb = spiSendReceive(0x00);
   digitalWrite(PB6, 0);
+
+  delay_millis(TIM15, 1);
 
   return convertTempToFloat(temp_lsb, temp_msb);
 };
