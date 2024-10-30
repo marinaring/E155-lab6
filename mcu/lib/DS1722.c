@@ -9,15 +9,14 @@
 
 
 void configureTemp(int resolution) {
-  
-  // send signal that we are changing the configuration register
-  digitalWrite(CS, 1);
-  spiSendReceive(0x80);
-
   // send new configuration
   int default_config = 0b11100000;
   int new_config = (resolution << 1) | default_config; // concatenate default configuration with resolution chosen
   
+  
+  // send signal that we are changing the configuration register
+  digitalWrite(CS, 1);
+  spiSendReceive(0x80);
   spiSendReceive(new_config);
   digitalWrite(CS, 0);
 

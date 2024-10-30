@@ -15,7 +15,7 @@
 #define BUFF_LEN 32
 #define SPI SPI1
 #define COPI PA12
-#define CIPO PA6
+#define CIPO PB4
 #define SCK PA5
 #define CS PB6
 

@@ -56,10 +56,18 @@ int updateLEDStatus(char request[], int old_led_status)
 int updateTempConfig(char request[]) {
   int temp_config = BIT8;
 
-  temp_config = (inString(request, "bit9")) ? BIT9 : temp_config;
-  temp_config = (inString(request, "bit10")) ? BIT10 : temp_config;
-  temp_config = (inString(request, "bit11")) ? BIT11 : temp_config;
-  temp_config = (inString(request, "bit12")) ? BIT12 : temp_config;
+  if (inString(request, "bit9") == 1) {
+    temp_config = BIT9;
+  }
+  else if (inString(request, "bit10") == 1) {
+    temp_config = BIT10;
+  } 
+  else if (inString(request, "bit11") == 1) {
+    temp_config = BIT11;
+  }
+  else if (inString(request, "bit12") == 1) {
+    temp_config = BIT12;
+  }
 
   return temp_config;
 }
@@ -84,9 +92,10 @@ int main(void) {
   pinMode(SCK, GPIO_ALT);
   pinMode(CS, GPIO_OUTPUT);
 
-  //GPIOB->AFR[0] |= _VAL2FLD(GPIO_AFRL_AFSEL6, 0b0101); // select CIPO as AF5
+  GPIOB->PUPDR &= ~(1 << GPIO_PUPDR_PUPD4_Pos); // for some reason, PB4 is set to pull up by default
+
   GPIOA->AFR[0] |= _VAL2FLD(GPIO_AFRL_AFSEL5, 0b0101); // select PA5 as AF5
-  GPIOA->AFR[0] |= _VAL2FLD(GPIO_AFRL_AFSEL6, 0b0101); // select PA6 as AF5
+  GPIOB->AFR[0] |= _VAL2FLD(GPIO_AFRL_AFSEL4, 0b0101); // select PB4 as AF5
   GPIOA->AFR[1] |= _VAL2FLD(GPIO_AFRL_AFSEL4, 0b0101); // select PA12 as AF5
 
   RCC->APB2ENR |= (RCC_APB2ENR_TIM15EN);
@@ -99,12 +108,11 @@ int main(void) {
   // initialize SPI
   // CPHA MUST BE SET TO 1
   initSPI(0b111, 1, 1);
+  delay_millis(TIM15, 1);
 
 
   // initialize temperature sensor
-  digitalWrite(CS, 1);
   configureTemp(BIT8);
-  digitalWrite(CS, 0);
   
   
   delay_millis(TIM15, 1);
@@ -120,50 +128,51 @@ int main(void) {
     int charIndex = 0;
   
     // Keep going until you get end of line character
-    //while(inString(request, "\n") == -1) {
-    //  // Wait for a complete request to be transmitted before processing
-    //  while(!(USART->ISR & USART_ISR_RXNE));
-    //  request[charIndex++] = readChar(USART);
-    //}
-
-    // read temperature
-    while(1) {
-      float temp_status = readTemp();
+    while(inString(request, "\n") == -1) {
+      // Wait for a complete request to be transmitted before processing
+      while(!(USART->ISR & USART_ISR_RXNE));
+      request[charIndex++] = readChar(USART);
     }
 
-    char tempStatusStr[50];
-    //sprintf(tempStatusStr, "The temperature is %f deg C", temp_status);
+    // read temperature
+    float temp_status = readTemp();
+  
+
+    char tempStatusStr[40];
+    sprintf(tempStatusStr, "The temperature is %f deg C", temp_status);
 
     // Update string with current LED state
-    //int led_status = updateLEDStatus(request, led_status);
+    int led_status = updateLEDStatus(request, led_status);
 
     // Update string with current temp config
-    //int temp_config_status = updateTempConfig(request);
+    int temp_config_status = updateTempConfig(request);
+    configureTemp(temp_config_status);
+    delay_millis(TIM15, 5);
 
-    //char ledStatusStr[20];
-    //if (led_status == 1)
-    //  sprintf(ledStatusStr,"LED is on!");
-    //else if (led_status == 0)
-    //  sprintf(ledStatusStr,"LED is off!");
+    char ledStatusStr[20];
+    if (led_status == 1)
+      sprintf(ledStatusStr,"LED is on!");
+    else if (led_status == 0)
+      sprintf(ledStatusStr,"LED is off!");
 
-    //// finally, transmit the webpage over UART
-    //sendString(USART, webpageStart); // webpage header code
-    //sendString(USART, ledStr); // button for controlling LED
+    // finally, transmit the webpage over UART
+    sendString(USART, webpageStart); // webpage header code
+    sendString(USART, ledStr); // button for controlling LED
 
-    //sendString(USART, "<h2>LED Status</h2>");
+    sendString(USART, "<h2>LED Status</h2>");
 
 
-    //sendString(USART, "<p>");
-    //sendString(USART, ledStatusStr);
-    //sendString(USART, "</p>");
+    sendString(USART, "<p>");
+    sendString(USART, ledStatusStr);
+    sendString(USART, "</p>");
 
-    //sendString(USART, "<h2>Temperature Status</h2>");
-    //sendString(USART, tempForm);
-    ////sendString(USART, "<p>");
-    ////sendString(USART, tempStatusStr);
-    ////sendString(USART, "</p>");
+    sendString(USART, "<h2>Temperature Status</h2>");
+    sendString(USART, tempForm);
+    sendString(USART, "<p>");
+    sendString(USART, tempStatusStr);
+    sendString(USART, "</p>");
 
   
-    //sendString(USART, webpageEnd);
+    sendString(USART, webpageEnd);
   }
 }
