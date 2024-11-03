@@ -26,14 +26,14 @@ void configureTemp(int resolution) {
 float readTemp(void) {
   digitalWrite(CS, 1);
   spiSendReceive(0x01);
-  char temp_lsb = spiSendReceive(0x00);
+  char temp_lsb = spiSendReceive(0xA1);
   digitalWrite(CS, 0);
 
   delay_millis(TIM15, 1);
 
   digitalWrite(CS, 1);
   spiSendReceive(0x02);
-  char temp_msb = spiSendReceive(0x00);
+  char temp_msb = spiSendReceive(0xA1);
   digitalWrite(CS, 0);
 
   delay_millis(TIM15, 1);

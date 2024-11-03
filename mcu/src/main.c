@@ -69,6 +69,9 @@ int updateTempConfig(char request[]) {
     temp_config = BIT12;
   }
 
+  configureTemp(temp_config);
+  delay_millis(TIM15, 5);
+
   return temp_config;
 }
 
@@ -93,6 +96,7 @@ int main(void) {
   pinMode(CS, GPIO_OUTPUT);
 
   GPIOB->PUPDR &= ~(1 << GPIO_PUPDR_PUPD4_Pos); // for some reason, PB4 is set to pull up by default
+  GPIOA->PUPDR &= ~(1 << GPIO_PUPDR_PUPD12_Pos);
 
   GPIOA->AFR[0] |= _VAL2FLD(GPIO_AFRL_AFSEL5, 0b0101); // select PA5 as AF5
   GPIOB->AFR[0] |= _VAL2FLD(GPIO_AFRL_AFSEL4, 0b0101); // select PB4 as AF5
@@ -125,7 +129,7 @@ int main(void) {
 
     // Receive web request from the ESP
     char request[BUFF_LEN] = "                  "; // initialize to known value
-    int charIndex = 0;
+    int charIndex = 0; 
   
     // Keep going until you get end of line character
     while(inString(request, "\n") == -1) {
@@ -134,20 +138,17 @@ int main(void) {
       request[charIndex++] = readChar(USART);
     }
 
-    // read temperature
-    float temp_status = readTemp();
-  
-
-    char tempStatusStr[40];
-    sprintf(tempStatusStr, "The temperature is %f deg C", temp_status);
-
     // Update string with current LED state
     int led_status = updateLEDStatus(request, led_status);
 
     // Update string with current temp config
     int temp_config_status = updateTempConfig(request);
-    configureTemp(temp_config_status);
-    delay_millis(TIM15, 5);
+
+    // read temperature
+    float temp_status = readTemp();
+
+    char tempStatusStr[40];
+    sprintf(tempStatusStr, "The temperature is %f deg C", temp_status);
 
     char ledStatusStr[20];
     if (led_status == 1)
