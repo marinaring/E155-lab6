@@ -29,14 +29,14 @@ float readTemp(void) {
   char temp_lsb = spiSendReceive(0xA1);
   digitalWrite(CS, 0);
 
-  delay_millis(TIM15, 1);
+  delay_millis(TIM15, 5);
 
   digitalWrite(CS, 1);
   spiSendReceive(0x02);
   char temp_msb = spiSendReceive(0xA1);
   digitalWrite(CS, 0);
 
-  delay_millis(TIM15, 1);
+  delay_millis(TIM15, 5);
 
   return convertTempToFloat(temp_lsb, temp_msb);
 };

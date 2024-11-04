@@ -53,10 +53,13 @@ int updateLEDStatus(char request[], int old_led_status)
 	return led_status;
 }
 
-int updateTempConfig(char request[]) {
-  int temp_config = BIT8;
+int updateTempConfig(char request[], int config_status) {
+  int temp_config = config_status;
 
-  if (inString(request, "bit9") == 1) {
+  if (inString(request, "bit8") == 1) {
+    temp_config = BIT8;
+  }
+  else if (inString(request, "bit9") == 1) {
     temp_config = BIT9;
   }
   else if (inString(request, "bit10") == 1) {
@@ -70,7 +73,6 @@ int updateTempConfig(char request[]) {
   }
 
   configureTemp(temp_config);
-  delay_millis(TIM15, 5);
 
   return temp_config;
 }
@@ -118,8 +120,11 @@ int main(void) {
   // initialize temperature sensor
   configureTemp(BIT8);
   
-  
   delay_millis(TIM15, 1);
+
+  int temp_config_status = BIT8;
+  int led_status = 0;
+
 
   while(1) {
     /* Wait for ESP8266 to send a request.
@@ -139,10 +144,12 @@ int main(void) {
     }
 
     // Update string with current LED state
-    int led_status = updateLEDStatus(request, led_status);
+    led_status = updateLEDStatus(request, led_status);
 
     // Update string with current temp config
-    int temp_config_status = updateTempConfig(request);
+    temp_config_status = updateTempConfig(request, temp_config_status);
+
+    delay_millis(TIM15, 20);
 
     // read temperature
     float temp_status = readTemp();
