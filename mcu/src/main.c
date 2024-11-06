@@ -84,6 +84,11 @@ int updateTempConfig(char request[], int config_status) {
 
 
 int main(void) {
+
+  float c1 = convertTempToFloat(0b00000000, 0b01111000);
+  float c2 = convertTempToFloat(0b00000000, 0b11001001);
+
+
   configureFlash();
   configureClock();
 

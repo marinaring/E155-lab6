@@ -44,37 +44,8 @@ float readTemp(void) {
 
 float convertTempToFloat(char read_lsb, char read_msb) {
   
-  float temp_value = 0;
+  int convert = (int) (read_msb << 8) | read_lsb;
 
-  read_lsb = read_lsb >> 4; // the last 4 bits of the least significant bits are just default zeros
-  
-  // for the most significant bits, the MSB is the sign bit
-  // so, if we have a negative sign, need to take two's compliment before 
-  if ((read_msb >> 7) & 1) {
-    temp_value = (~read_msb); 
-    read_lsb = ~read_lsb + 1; 
-
-    // for the least significant bits, we have the following format (after shifting left by 4):
-    // 2^-1  2^-2  2^-3  2^-4
-    for (int i = 0; i < 4; i++) {
-      int bit_value = (read_lsb >> i) & 1; // get the bit value
-      temp_value += (float) bit_value * pow(2, -4 + i); // multiply by the appropriate power
-    }
-
-    // change to negative value
-    temp_value = -1.0 * temp_value; 
-
-  }
-  else {
-    temp_value = read_msb;
-
-    for (int i = 0; i < 4; i++) {
-      int bit_value = (read_lsb >> i) & 1; // get the bit value
-      temp_value += (float) bit_value * pow(2, -4 + i); // multiply by the appropriate power
-    }
-  }
-
-  return temp_value;
-  
+  return (float) convert/pow(2, 8);
 };
 
